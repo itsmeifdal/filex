@@ -6,6 +6,33 @@ use Tests\TestCase;
 
 class GoogleDrivePokjaStructureTest extends TestCase
 {
+    public function test_ppk_document_requirements_match_the_official_evidence_list(): void
+    {
+        $requirements = collect(config('accreditation.document_requirements'))
+            ->filter(fn (array $requirement, string $code): bool => str_starts_with($code, 'PPK '));
+
+        $this->assertCount(23, $requirements);
+        $this->assertSame(42, $requirements->sum('count'));
+        $this->assertSame(2, $requirements['PPK 1 / EP 2']['count']);
+        $this->assertSame(3, $requirements['PPK 1 / EP 3']['count']);
+        $this->assertSame(2, $requirements['PPK 1 / EP 4']['count']);
+    }
+
+    public function test_skp_and_pmkp_document_requirements_match_the_official_evidence_list(): void
+    {
+        $requirements = collect(config('accreditation.document_requirements'));
+        $skp = $requirements->filter(fn (array $requirement, string $code): bool => str_starts_with($code, 'SKP '));
+        $pmkp = $requirements->filter(fn (array $requirement, string $code): bool => str_starts_with($code, 'PMKP '));
+
+        $this->assertCount(24, $skp);
+        $this->assertSame(59, $skp->sum('count'));
+        $this->assertSame(3, $skp['SKP 1 / EP 3']['count']);
+        $this->assertCount(44, $pmkp);
+        $this->assertSame(96, $pmkp->sum('count'));
+        $this->assertSame(6, config('accreditation.drive_structures.PMKP.11'));
+        $this->assertSame(4, $pmkp['PMKP 11 / EP 4']['count']);
+    }
+
     public function test_akp_configuration_contains_the_exact_standard_and_ep_counts(): void
     {
         $standards = config('accreditation.drive_structures.AKP');
@@ -176,7 +203,7 @@ class GoogleDrivePokjaStructureTest extends TestCase
             array_keys($standards),
         );
         $this->assertCount(12, $standards);
-        $this->assertSame(41, array_sum($standards));
+        $this->assertSame(44, array_sum($standards));
         $this->assertSame(7, $standards[4]);
     }
 

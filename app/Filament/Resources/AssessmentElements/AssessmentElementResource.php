@@ -43,6 +43,17 @@ class AssessmentElementResource extends Resource
             Select::make('standard_id')->relationship('standard', 'title')->getOptionLabelFromRecordUsing(fn ($record) => $record->code.' — '.$record->title)->label('Standar')->required()->searchable(['code', 'title'])->preload(),
             TextInput::make('code')->label('Kode')->required()->maxLength(70)->unique(ignoreRecord: true),
             Textarea::make('description')->label('Deskripsi EP')->required()->rows(4)->columnSpanFull(),
+            TextInput::make('required_document_count')
+                ->label('Dokumen Dibutuhkan')
+                ->helperText('Kosongkan jika kebutuhan EP belum dikaji. Nilai 0 berarti EP tidak membutuhkan unggahan dokumen.')
+                ->numeric()
+                ->minValue(0)
+                ->maxValue(999),
+            Textarea::make('evidence_notes')
+                ->label('Keterangan Bukti')
+                ->helperText('Rincian dokumen yang menjadi dasar target pada halaman publik.')
+                ->rows(4)
+                ->columnSpanFull(),
             TextInput::make('sort_order')->label('Urutan')->numeric()->default(0)->required(),
             Toggle::make('is_active')->label('Aktif')->default(true),
         ]);
@@ -55,6 +66,7 @@ class AssessmentElementResource extends Resource
             TextColumn::make('standard.code')->label('Standar')->searchable()->sortable(),
             TextColumn::make('code')->label('Kode EP')->searchable()->sortable(),
             TextColumn::make('description')->label('Deskripsi')->searchable()->wrap()->limit(80),
+            TextColumn::make('required_document_count')->label('Target')->placeholder('Belum dikaji')->sortable(),
             TextColumn::make('documents_count')->counts('documents')->label('Dokumen'),
             IconColumn::make('is_active')->label('Aktif')->boolean(),
         ])->filters([SelectFilter::make('standard_id')->relationship('standard', 'code')->label('Standar')->searchable()->preload()])

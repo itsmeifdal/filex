@@ -38,6 +38,21 @@ class AccreditationStructureTest extends TestCase
         $this->assertTrue($surveyor->can('viewAny', Standard::class));
         $this->assertFalse($surveyor->can('create', Standard::class));
         $this->assertFalse($surveyor->can('update', $standard));
+        $this->assertFalse($surveyor->can('update', new AssessmentElement));
+    }
+
+    public function test_admin_can_correct_an_assessment_element_document_target(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $element = new AssessmentElement;
+
+        $this->assertTrue($admin->can('update', $element));
+
+        $element->required_document_count = 2;
+        $element->evidence_notes = 'Daftar institusi dan sertifikat akreditasi.';
+
+        $this->assertSame(2, $element->required_document_count);
+        $this->assertSame('Daftar institusi dan sertifikat akreditasi.', $element->evidence_notes);
     }
 
     public function test_only_admin_can_manage_users(): void

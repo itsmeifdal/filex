@@ -246,6 +246,27 @@ class PublicDocumentUpload extends Component
             ->orderBy('sort_order')
             ->get();
 
+        $workingGroupIds = $groups->flatMap->workingGroups->pluck('id');
+        $workingGroupRequiredDocuments = AssessmentElement::query()
+            ->join('standards', 'standards.id', '=', 'assessment_elements.standard_id')
+            ->whereIn('standards.working_group_id', $workingGroupIds)
+            ->where('standards.is_active', true)
+            ->where('assessment_elements.is_active', true)
+            ->whereNotNull('assessment_elements.required_document_count')
+            ->selectRaw('standards.working_group_id as progress_key, SUM(assessment_elements.required_document_count) as aggregate')
+            ->groupBy('standards.working_group_id')
+            ->pluck('aggregate', 'progress_key');
+        $workingGroupUploadedDocuments = AccreditationDocument::query()
+            ->join('assessment_elements', 'assessment_elements.id', '=', 'accreditation_documents.assessment_element_id')
+            ->join('standards', 'standards.id', '=', 'assessment_elements.standard_id')
+            ->whereIn('standards.working_group_id', $workingGroupIds)
+            ->where('standards.is_active', true)
+            ->where('assessment_elements.is_active', true)
+            ->whereNotNull('assessment_elements.required_document_count')
+            ->selectRaw('standards.working_group_id as progress_key, COUNT(accreditation_documents.id) as aggregate')
+            ->groupBy('standards.working_group_id')
+            ->pluck('aggregate', 'progress_key');
+
         /** @var Collection<int, Collection<int, Standard>> $standardsByWorkingGroup */
         $standardsByWorkingGroup = $expandedWorkingGroups === []
             ? collect()
@@ -256,6 +277,23 @@ class PublicDocumentUpload extends Component
                 ->orderBy('sort_order')
                 ->get()
                 ->groupBy('working_group_id');
+
+        $visibleStandardIds = $standardsByWorkingGroup->flatten(1)->pluck('id');
+        $standardRequiredDocuments = AssessmentElement::query()
+            ->whereIn('standard_id', $visibleStandardIds)
+            ->where('is_active', true)
+            ->whereNotNull('required_document_count')
+            ->selectRaw('standard_id as progress_key, SUM(required_document_count) as aggregate')
+            ->groupBy('standard_id')
+            ->pluck('aggregate', 'progress_key');
+        $standardUploadedDocuments = AccreditationDocument::query()
+            ->join('assessment_elements', 'assessment_elements.id', '=', 'accreditation_documents.assessment_element_id')
+            ->whereIn('assessment_elements.standard_id', $visibleStandardIds)
+            ->where('assessment_elements.is_active', true)
+            ->whereNotNull('assessment_elements.required_document_count')
+            ->selectRaw('assessment_elements.standard_id as progress_key, COUNT(accreditation_documents.id) as aggregate')
+            ->groupBy('assessment_elements.standard_id')
+            ->pluck('aggregate', 'progress_key');
 
         /** @var Collection<int, Collection<int, AssessmentElement>> $elementsByStandard */
         $elementsByStandard = $expandedStandards === []
@@ -288,6 +326,10 @@ class PublicDocumentUpload extends Component
             'elementsByStandard',
             'selectedElement',
             'deletableDocumentIds',
+            'workingGroupRequiredDocuments',
+            'workingGroupUploadedDocuments',
+            'standardRequiredDocuments',
+            'standardUploadedDocuments',
         ));
     }
 }

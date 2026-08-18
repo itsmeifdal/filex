@@ -242,6 +242,7 @@ class GoogleDriveService
                             $element = AssessmentElement::query()->where('drive_folder_id', $elementFolder['id'])->first()
                                 ?? AssessmentElement::query()->where('code', $elementCode)->first()
                                 ?? new AssessmentElement;
+                            $requirement = config("accreditation.document_requirements.{$elementCode}");
                             $element->fill([
                                 'standard_id' => $standard->id,
                                 'code' => $elementCode,
@@ -249,7 +250,16 @@ class GoogleDriveService
                                 'sort_order' => $elementIndex + 1,
                                 'drive_folder_id' => $elementFolder['id'],
                                 'is_active' => true,
-                            ])->save();
+                            ]);
+
+                            if (! $element->exists && is_array($requirement)) {
+                                $element->fill([
+                                    'required_document_count' => $requirement['count'] ?? null,
+                                    'evidence_notes' => $requirement['evidence'] ?? null,
+                                ]);
+                            }
+
+                            $element->save();
                             $counts['assessment_elements']++;
                         }
                     }

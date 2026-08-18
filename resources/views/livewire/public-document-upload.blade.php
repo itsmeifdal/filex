@@ -45,6 +45,9 @@
                     <div class="divide-y divide-slate-100">
                         @forelse ($group->workingGroups as $workingGroup)
                             @php($workingGroupOpen = in_array($workingGroup->id, $expandedWorkingGroups, true))
+                            @php($workingGroupHasTarget = $workingGroupRequiredDocuments->has($workingGroup->id))
+                            @php($workingGroupRequired = (int) $workingGroupRequiredDocuments->get($workingGroup->id, 0))
+                            @php($workingGroupUploaded = (int) $workingGroupUploadedDocuments->get($workingGroup->id, 0))
                             <div wire:key="working-group-{{ $workingGroup->id }}">
                                 <button
                                     wire:click="toggleWorkingGroup({{ $workingGroup->id }})"
@@ -60,13 +63,20 @@
                                         <span class="block truncate text-sm font-semibold text-slate-800 group-hover:text-emerald-800">{{ $workingGroup->name }}</span>
                                         <span class="block text-xs text-slate-500">{{ $workingGroup->standards_count }} Standar</span>
                                     </span>
-                                    <span class="hidden rounded-md bg-slate-100 px-2 py-1 text-xs font-medium text-slate-500 sm:inline">POKJA</span>
+                                    @if ($workingGroupHasTarget)
+                                        <span class="shrink-0 rounded-md px-2 py-1 text-xs font-bold {{ $workingGroupUploaded >= $workingGroupRequired ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800' }}">{{ $workingGroupUploaded }}/{{ $workingGroupRequired }} dokumen</span>
+                                    @else
+                                        <span class="hidden rounded-md bg-slate-100 px-2 py-1 text-xs font-medium text-slate-500 sm:inline">POKJA</span>
+                                    @endif
                                 </button>
 
                                 @if ($workingGroupOpen)
                                     <div class="border-t border-slate-100 bg-slate-50/60 py-1 pl-5 sm:pl-10">
                                         @foreach ($standardsByWorkingGroup->get($workingGroup->id, collect()) as $standard)
                                             @php($standardOpen = in_array($standard->id, $expandedStandards, true))
+                                            @php($standardHasTarget = $standardRequiredDocuments->has($standard->id))
+                                            @php($standardRequired = (int) $standardRequiredDocuments->get($standard->id, 0))
+                                            @php($standardUploaded = (int) $standardUploadedDocuments->get($standard->id, 0))
                                             <div wire:key="standard-{{ $standard->id }}" class="border-l border-slate-200">
                                                 <button
                                                     wire:click="toggleStandard({{ $standard->id }})"
@@ -79,13 +89,19 @@
                                                         <span class="block text-xs font-bold uppercase tracking-wide text-emerald-700">{{ $standard->code }}</span>
                                                         <span class="mt-0.5 block text-sm text-slate-700">{{ $standard->title }}</span>
                                                     </span>
-                                                    <span class="shrink-0 text-xs text-slate-400">{{ $standard->assessment_elements_count }} EP</span>
+                                                    <span class="shrink-0 text-right text-xs">
+                                                        <span class="block text-slate-400">{{ $standard->assessment_elements_count }} EP</span>
+                                                        @if ($standardHasTarget)
+                                                            <span class="mt-0.5 block font-semibold {{ $standardUploaded >= $standardRequired ? 'text-emerald-700' : 'text-amber-700' }}">{{ $standardUploaded }}/{{ $standardRequired }} dokumen</span>
+                                                        @endif
+                                                    </span>
                                                 </button>
 
                                                 @if ($standardOpen)
                                                     <div class="ml-5 border-l border-dashed border-emerald-200 bg-white sm:ml-8">
                                                         @foreach ($elementsByStandard->get($standard->id, collect()) as $element)
                                                             @php($selected = $assessmentElementId === $element->id)
+                                                            @php($elementUploaded = $element->documents->count())
                                                             <div wire:key="element-{{ $element->id }}" class="border-t border-slate-100">
                                                                 <button
                                                                     wire:click="selectElement({{ $element->id }})"
@@ -96,6 +112,9 @@
                                                                     <span class="min-w-0 flex-1">
                                                                         <span class="block text-xs font-semibold text-slate-500">{{ $element->code }}</span>
                                                                         <span class="mt-0.5 block text-sm leading-5 text-slate-700">{{ $element->description }}</span>
+                                                                        @if ($element->required_document_count !== null)
+                                                                            <span class="mt-1 block text-xs font-bold {{ $elementUploaded >= $element->required_document_count ? 'text-emerald-700' : 'text-amber-700' }}">{{ $elementUploaded }}/{{ $element->required_document_count }} dokumen</span>
+                                                                        @endif
                                                                     </span>
                                                                     <span class="mt-1 shrink-0 rounded-lg px-2 py-1 text-xs font-semibold {{ $selected ? 'bg-emerald-700 text-white' : 'bg-white text-emerald-700 ring-1 ring-emerald-200' }}">{{ $selected ? 'Dipilih' : 'Unggah' }}</span>
                                                                 </button>
@@ -148,8 +167,18 @@
                             <button wire:click="clearSelection" type="button" class="rounded-lg p-1.5 text-emerald-200 hover:bg-white/10 hover:text-white" aria-label="Tutup panel unggah">✕</button>
                         </div>
                         <p class="mt-3 text-sm leading-5 text-emerald-100">{{ $selectedElement->description }}</p>
+                        @if ($selectedElement->required_document_count !== null)
+                            <p class="mt-3 rounded-lg bg-white/10 px-3 py-2 text-sm font-semibold text-white">{{ $selectedElement->documents()->count() }}/{{ $selectedElement->required_document_count }} dokumen tersedia</p>
+                        @endif
                         <p class="mt-3 text-xs text-emerald-300">{{ $selectedElement->standard->workingGroup->name }} → {{ $selectedElement->standard->code }}</p>
                     </div>
+
+                    @if (filled($selectedElement->evidence_notes))
+                        <div class="border-b border-emerald-100 bg-emerald-50 px-5 py-4">
+                            <p class="text-xs font-bold uppercase tracking-wide text-emerald-800">Bukti yang dibutuhkan</p>
+                            <p class="mt-1 text-sm leading-6 text-emerald-950">{{ $selectedElement->evidence_notes }}</p>
+                        </div>
+                    @endif
 
                     @if ($uploaded)
                         <div class="px-5 py-10 text-center">
