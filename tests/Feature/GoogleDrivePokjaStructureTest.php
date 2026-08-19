@@ -158,6 +158,29 @@ class GoogleDrivePokjaStructureTest extends TestCase
         ));
     }
 
+    public function test_pap_and_pkpo_requirements_count_only_document_and_regulation_evidence(): void
+    {
+        $requirements = collect(config('accreditation.document_requirements'));
+        $pap = $requirements->filter(fn (array $requirement, string $code): bool => str_starts_with($code, 'PAP '));
+        $pkpo = $requirements->filter(fn (array $requirement, string $code): bool => str_starts_with($code, 'PKPO '));
+
+        $this->assertCount(52, $pap);
+        $this->assertSame(72, $pap->sum('count'));
+        $this->assertSame(3, $pap['PAP 2.4 / EP 3']['count']);
+        $this->assertSame(0, $pap['PAP 2.6 / EP 3']['count']);
+
+        $this->assertCount(52, $pkpo);
+        $this->assertSame(50, $pkpo->sum('count'));
+        $this->assertSame(0, $pkpo['PKPO 3.1 / EP 1']['count']);
+        $this->assertSame(3, $pkpo['PKPO 6 / EP 1']['count']);
+        $this->assertSame(1, $pkpo['PKPO 7.1 / EP 3']['count']);
+
+        $pap->merge($pkpo)->each(fn (array $requirement) => $this->assertDoesNotMatchRegularExpression(
+            '/\[(?:W|O|S)\]/',
+            $requirement['evidence'],
+        ));
+    }
+
     public function test_akp_configuration_contains_the_exact_standard_and_ep_counts(): void
     {
         $standards = config('accreditation.drive_structures.AKP');
@@ -242,7 +265,7 @@ class GoogleDrivePokjaStructureTest extends TestCase
             array_keys($standards),
         );
         $this->assertCount(14, $standards);
-        $this->assertSame(51, array_sum($standards));
+        $this->assertSame(52, array_sum($standards));
         $this->assertSame(7, $standards[5]);
     }
 
