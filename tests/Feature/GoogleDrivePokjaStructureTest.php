@@ -140,6 +140,24 @@ class GoogleDrivePokjaStructureTest extends TestCase
         ));
     }
 
+    public function test_pab_requirements_count_only_document_and_regulation_evidence(): void
+    {
+        $requirements = collect(config('accreditation.document_requirements'))
+            ->filter(fn (array $requirement, string $code): bool => str_starts_with($code, 'PAB '));
+
+        $this->assertCount(38, $requirements);
+        $this->assertSame(45, $requirements->sum('count'));
+        $this->assertSame(2, $requirements['PAB 1 / EP 1']['count']);
+        $this->assertSame(2, $requirements['PAB 3.2 / EP 3']['count']);
+        $this->assertSame(2, $requirements['PAB 7.2 / EP 2']['count']);
+        $this->assertSame(1, $requirements['PAB 7.4 / EP 4']['count']);
+
+        $requirements->each(fn (array $requirement) => $this->assertDoesNotMatchRegularExpression(
+            '/\[(?:W|O|S)\]/',
+            $requirement['evidence'],
+        ));
+    }
+
     public function test_akp_configuration_contains_the_exact_standard_and_ep_counts(): void
     {
         $standards = config('accreditation.drive_structures.AKP');
