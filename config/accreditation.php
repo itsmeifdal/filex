@@ -1,5 +1,30 @@
 <?php
 
+$expandDocumentRequirements = static function (array $profiles): array {
+    $requirements = [];
+
+    foreach ($profiles as $pokja => $standards) {
+        foreach ($standards as $standard => $counts) {
+            foreach ($counts as $index => $count) {
+                $element = $index + 1;
+                $evidence = $count === 0
+                    ? 'Tidak ada dokumen D/R pada kolom Kelengkapan Bukti; penilaian menggunakan observasi, wawancara, dan/atau simulasi.'
+                    : sprintf(
+                        '[D/R] %d butir dokumen sesuai kolom Kelengkapan Bukti instrumen akreditasi 2024.',
+                        $count,
+                    );
+
+                $requirements["{$pokja} {$standard} / EP {$element}"] = [
+                    'count' => $count,
+                    'evidence' => $evidence,
+                ];
+            }
+        }
+    }
+
+    return $requirements;
+};
+
 return [
     'pokja_groups' => [
         'AKP' => 'MEDIS',
@@ -260,7 +285,7 @@ return [
             '5' => 4,
             '5.1' => 3,
             '6' => 5,
-            '6.1' => 1,
+            '6.1' => 4,
         ],
         'TKRS' => [
             '1' => 4,
@@ -279,11 +304,68 @@ return [
             '12' => 4,
             '13' => 6,
             '14' => 2,
-            '15' => 4,
+            '15' => 7,
         ],
     ],
 
     'document_requirements' => [
+        ...$expandDocumentRequirements([
+            'PPI' => [
+                '1' => [1, 1, 1, 1],
+                '1.1' => [1, 1],
+                '2' => [1, 1],
+                '3' => [2, 1],
+                '4' => [1, 2, 1, 1, 2],
+                '4.1' => [1, 1, 1],
+                '5' => [1, 1, 1],
+                '6' => [1, 1, 1],
+                '7' => [1, 2, 2, 4],
+                '7.1' => [1, 0, 1],
+                '7.2' => [0, 4, 1, 3, 1],
+                '8' => [1, 1, 1],
+                '9' => [0, 1, 1],
+                '10' => [0, 0, 0, 1],
+                '10.1' => [2, 0, 1],
+                '11' => [0, 0, 1],
+                '11.1' => [1, 0, 0, 1],
+                '12' => [1, 1, 1],
+                '13' => [1, 1, 1],
+            ],
+            'PROGNAS' => [
+                '1' => [1, 1, 1, 1, 1],
+                '1.1' => [1, 1, 1],
+                '2' => [1, 2, 1, 1],
+                '2.1' => [0, 0, 0],
+                '2.2' => [1, 1, 1, 1],
+                '3' => [2, 1, 1, 1, 1, 1],
+                '4' => [1, 1, 1],
+                '4.1' => [3, 1],
+                '5' => [1, 2, 1, 1],
+                '5.1' => [1, 1, 0],
+                '6' => [1, 2, 1, 1, 2],
+                '6.1' => [1, 2, 1, 1],
+            ],
+            'TKRS' => [
+                '1' => [1, 1, 1, 1],
+                '2' => [3, 2, 1],
+                '3' => [3, 1, 1, 2],
+                '3.1' => [1, 5, 1],
+                '4' => [2, 2, 3, 1],
+                '5' => [1, 1, 1],
+                '6' => [1, 2, 1, 1, 2, 2],
+                '7' => [1, 1, 1, 1, 1, 2],
+                '7.1' => [1, 2, 1, 1],
+                '8' => [1, 1, 1],
+                '9' => [1, 3, 1, 2, 1],
+                '10' => [1, 1, 1, 1],
+                '11' => [1, 1, 1],
+                '12' => [1, 1, 1, 3],
+                '13' => [2, 3, 1, 1, 3, 1],
+                '14' => [1, 2],
+                '15' => [3, 2, 2, 1, 2, 2, 2],
+            ],
+        ]),
+
         'PPK 1 / EP 1' => ['count' => 1, 'evidence' => '[R] Perjanjian kerja sama dengan institusi penyelenggara pendidikan kesehatan yang masih berlaku.'],
         'PPK 1 / EP 2' => ['count' => 2, 'evidence' => '[D] 1. Daftar institusi pendidikan yang bekerja sama dengan rumah sakit; 2. Sertifikat akreditasi institusi pendidikan.'],
         'PPK 1 / EP 3' => ['count' => 2, 'evidence' => '[R] Pernyataan dalam perjanjian kerja sama yang mencantumkan kriteria penerimaan peserta didik; [D] Daftar peserta didik per periode.'],

@@ -83,6 +83,35 @@ class GoogleDrivePokjaStructureTest extends TestCase
         ));
     }
 
+    public function test_ppi_prognas_and_tkrs_requirements_count_only_document_and_regulation_evidence(): void
+    {
+        $requirements = collect(config('accreditation.document_requirements'));
+        $ppi = $requirements->filter(fn (array $requirement, string $code): bool => str_starts_with($code, 'PPI '));
+        $prognas = $requirements->filter(fn (array $requirement, string $code): bool => str_starts_with($code, 'PROGNAS '));
+        $tkrs = $requirements->filter(fn (array $requirement, string $code): bool => str_starts_with($code, 'TKRS '));
+
+        $this->assertCount(62, $ppi);
+        $this->assertSame(65, $ppi->sum('count'));
+        $this->assertSame(4, $ppi['PPI 7 / EP 4']['count']);
+        $this->assertSame(0, $ppi['PPI 10 / EP 1']['count']);
+
+        $this->assertCount(46, $prognas);
+        $this->assertSame(50, $prognas->sum('count'));
+        $this->assertSame(3, $prognas['PROGNAS 4.1 / EP 1']['count']);
+        $this->assertSame(4, config('accreditation.drive_structures.PROGNAS')['6.1']);
+
+        $this->assertCount(71, $tkrs);
+        $this->assertSame(108, $tkrs->sum('count'));
+        $this->assertSame(5, $tkrs['TKRS 3.1 / EP 2']['count']);
+        $this->assertSame(3, $tkrs['TKRS 15 / EP 1']['count']);
+        $this->assertSame(7, config('accreditation.drive_structures.TKRS.15'));
+
+        $ppi->merge($prognas)->merge($tkrs)->each(fn (array $requirement) => $this->assertDoesNotMatchRegularExpression(
+            '/\[(?:W|O|S)\]/',
+            $requirement['evidence'],
+        ));
+    }
+
     public function test_akp_configuration_contains_the_exact_standard_and_ep_counts(): void
     {
         $standards = config('accreditation.drive_structures.AKP');
@@ -296,8 +325,9 @@ class GoogleDrivePokjaStructureTest extends TestCase
             array_keys($standards),
         );
         $this->assertCount(12, $standards);
-        $this->assertSame(43, array_sum($standards));
+        $this->assertSame(46, array_sum($standards));
         $this->assertSame(6, $standards[3]);
+        $this->assertSame(4, $standards['6.1']);
     }
 
     public function test_tkrs_configuration_contains_the_exact_standard_and_ep_counts(): void
@@ -311,7 +341,8 @@ class GoogleDrivePokjaStructureTest extends TestCase
             array_keys($standards),
         );
         $this->assertCount(17, $standards);
-        $this->assertSame(68, array_sum($standards));
+        $this->assertSame(71, array_sum($standards));
         $this->assertSame(6, $standards[13]);
+        $this->assertSame(7, $standards[15]);
     }
 }
