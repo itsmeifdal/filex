@@ -102,6 +102,7 @@
                                                         @foreach ($elementsByStandard->get($standard->id, collect()) as $element)
                                                             @php($selected = $assessmentElementId === $element->id)
                                                             @php($elementUploaded = $element->documents->count())
+                                                            @php($elementScored = $element->required_document_count === null ? $elementUploaded : min($elementUploaded, max(0, $element->required_document_count)))
                                                             <div wire:key="element-{{ $element->id }}" class="border-t border-slate-100">
                                                                 <button
                                                                     wire:click="selectElement({{ $element->id }})"
@@ -113,7 +114,7 @@
                                                                         <span class="block text-xs font-semibold text-slate-500">{{ $element->code }}</span>
                                                                         <span class="mt-0.5 block text-sm leading-5 text-slate-700">{{ $element->description }}</span>
                                                                         @if ($element->required_document_count !== null)
-                                                                            <span class="mt-1 block text-xs font-bold {{ $elementUploaded >= $element->required_document_count ? 'text-emerald-700' : 'text-amber-700' }}">{{ $elementUploaded }}/{{ $element->required_document_count }} dokumen</span>
+                                                                            <span class="mt-1 block text-xs font-bold {{ $elementScored >= $element->required_document_count ? 'text-emerald-700' : 'text-amber-700' }}">{{ $elementScored }}/{{ $element->required_document_count }} dokumen</span>
                                                                         @endif
                                                                     </span>
                                                                     <span class="mt-1 shrink-0 rounded-lg px-2 py-1 text-xs font-semibold {{ $selected ? 'bg-emerald-700 text-white' : 'bg-white text-emerald-700 ring-1 ring-emerald-200' }}">{{ $selected ? 'Dipilih' : 'Unggah' }}</span>

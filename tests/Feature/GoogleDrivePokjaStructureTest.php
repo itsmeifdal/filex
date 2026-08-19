@@ -12,10 +12,10 @@ class GoogleDrivePokjaStructureTest extends TestCase
             ->filter(fn (array $requirement, string $code): bool => str_starts_with($code, 'PPK '));
 
         $this->assertCount(23, $requirements);
-        $this->assertSame(42, $requirements->sum('count'));
+        $this->assertSame(30, $requirements->sum('count'));
         $this->assertSame(2, $requirements['PPK 1 / EP 2']['count']);
-        $this->assertSame(3, $requirements['PPK 1 / EP 3']['count']);
-        $this->assertSame(2, $requirements['PPK 1 / EP 4']['count']);
+        $this->assertSame(2, $requirements['PPK 1 / EP 3']['count']);
+        $this->assertSame(1, $requirements['PPK 1 / EP 4']['count']);
     }
 
     public function test_skp_and_pmkp_document_requirements_match_the_official_evidence_list(): void
@@ -25,14 +25,20 @@ class GoogleDrivePokjaStructureTest extends TestCase
         $pmkp = $requirements->filter(fn (array $requirement, string $code): bool => str_starts_with($code, 'PMKP '));
 
         $this->assertCount(24, $skp);
-        $this->assertSame(59, $skp->sum('count'));
-        $this->assertSame(3, $skp['SKP 1 / EP 3']['count']);
-        $this->assertSame(3, $skp['SKP 3.1 / EP 3']['count']);
+        $this->assertSame(21, $skp->sum('count'));
+        $this->assertSame(0, $skp['SKP 1 / EP 2']['count']);
+        $this->assertSame(0, $skp['SKP 1 / EP 3']['count']);
+        $this->assertSame(2, $skp['SKP 3.1 / EP 3']['count']);
         $this->assertCount(44, $pmkp);
-        $this->assertSame(96, $pmkp->sum('count'));
-        $this->assertSame(2, $pmkp['PMKP 4.1 / EP 1']['count']);
+        $this->assertSame(62, $pmkp->sum('count'));
+        $this->assertSame(1, $pmkp['PMKP 4.1 / EP 1']['count']);
         $this->assertSame(6, config('accreditation.drive_structures.PMKP.11'));
-        $this->assertSame(4, $pmkp['PMKP 11 / EP 4']['count']);
+        $this->assertSame(3, $pmkp['PMKP 11 / EP 4']['count']);
+
+        $requirements->each(fn (array $requirement) => $this->assertDoesNotMatchRegularExpression(
+            '/\[(?:W|O|S)\]/',
+            $requirement['evidence'],
+        ));
     }
 
     public function test_akp_configuration_contains_the_exact_standard_and_ep_counts(): void
