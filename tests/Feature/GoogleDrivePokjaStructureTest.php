@@ -112,6 +112,34 @@ class GoogleDrivePokjaStructureTest extends TestCase
         ));
     }
 
+    public function test_akp_hpk_and_ke_requirements_count_only_document_and_regulation_evidence(): void
+    {
+        $requirements = collect(config('accreditation.document_requirements'));
+        $akp = $requirements->filter(fn (array $requirement, string $code): bool => str_starts_with($code, 'AKP '));
+        $hpk = $requirements->filter(fn (array $requirement, string $code): bool => str_starts_with($code, 'HPK '));
+        $ke = $requirements->filter(fn (array $requirement, string $code): bool => str_starts_with($code, 'KE '));
+
+        $this->assertCount(67, $akp);
+        $this->assertSame(88, $akp->sum('count'));
+        $this->assertSame(5, $akp['AKP 5.2 / EP 1']['count']);
+        $this->assertSame(3, $akp['AKP 6 / EP 3']['count']);
+        $this->assertSame(4, config('accreditation.drive_structures.AKP.6'));
+
+        $this->assertCount(39, $hpk);
+        $this->assertSame(46, $hpk->sum('count'));
+        $this->assertSame(0, $hpk['HPK 1.2 / EP 1']['count']);
+        $this->assertSame(3, $hpk['HPK 1.2 / EP 3']['count']);
+
+        $this->assertCount(25, $ke);
+        $this->assertSame(32, $ke->sum('count'));
+        $this->assertSame(7, $ke['KE 4 / EP 3']['count']);
+
+        $akp->merge($hpk)->merge($ke)->each(fn (array $requirement) => $this->assertDoesNotMatchRegularExpression(
+            '/\[(?:W|O|S)\]/',
+            $requirement['evidence'],
+        ));
+    }
+
     public function test_akp_configuration_contains_the_exact_standard_and_ep_counts(): void
     {
         $standards = config('accreditation.drive_structures.AKP');
@@ -123,8 +151,9 @@ class GoogleDrivePokjaStructureTest extends TestCase
             array_keys($standards),
         );
         $this->assertCount(18, $standards);
-        $this->assertSame(65, array_sum($standards));
+        $this->assertSame(67, array_sum($standards));
         $this->assertSame(5, $standards['5.2']);
+        $this->assertSame(4, $standards[6]);
     }
 
     public function test_pab_configuration_contains_the_exact_standard_and_ep_counts(): void
