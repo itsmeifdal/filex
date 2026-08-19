@@ -60,6 +60,29 @@ class GoogleDrivePokjaStructureTest extends TestCase
         ));
     }
 
+    public function test_mfk_and_mrmik_document_requirements_count_only_document_and_regulation_evidence(): void
+    {
+        $requirements = collect(config('accreditation.document_requirements'));
+        $mfk = $requirements->filter(fn (array $requirement, string $code): bool => str_starts_with($code, 'MFK '));
+        $mrmik = $requirements->filter(fn (array $requirement, string $code): bool => str_starts_with($code, 'MRMIK '));
+
+        $this->assertCount(72, $mfk);
+        $this->assertSame(73, $mfk->sum('count'));
+        $this->assertSame(5, $mfk['MFK 1 / EP 2']['count']);
+        $this->assertSame(0, $mfk['MFK 5 / EP 4']['count']);
+        $this->assertSame(8, $mfk->filter(fn (array $requirement, string $code): bool => str_starts_with($code, 'MFK 11 /'))->count());
+
+        $this->assertCount(51, $mrmik);
+        $this->assertSame(57, $mrmik->sum('count'));
+        $this->assertSame(0, $mrmik['MRMIK 2.1 / EP 1']['count']);
+        $this->assertSame(2, $mrmik['MRMIK 13 / EP 5']['count']);
+
+        $mfk->merge($mrmik)->each(fn (array $requirement) => $this->assertDoesNotMatchRegularExpression(
+            '/\[(?:W|O|S)\]/',
+            $requirement['evidence'],
+        ));
+    }
+
     public function test_akp_configuration_contains_the_exact_standard_and_ep_counts(): void
     {
         $standards = config('accreditation.drive_structures.AKP');
@@ -200,8 +223,9 @@ class GoogleDrivePokjaStructureTest extends TestCase
             array_keys($standards),
         );
         $this->assertCount(16, $standards);
-        $this->assertSame(68, array_sum($standards));
+        $this->assertSame(72, array_sum($standards));
         $this->assertSame(6, $standards[6]);
+        $this->assertSame(8, $standards[11]);
     }
 
     public function test_mrmik_configuration_contains_the_exact_standard_and_ep_counts(): void
