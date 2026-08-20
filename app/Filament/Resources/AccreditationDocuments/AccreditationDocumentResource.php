@@ -86,7 +86,18 @@ class AccreditationDocumentResource extends Resource
         ])->recordActions([
             Action::make('download')->label('Unduh')->icon(Heroicon::OutlinedArrowDownTray)->url(fn ($record) => route('documents.download', $record)),
             EditAction::make()->label('Periksa'),
-            DeleteAction::make()->before(fn ($record, GoogleDriveService $drive) => $drive->delete($record->drive_file_id)),
+            DeleteAction::make()
+                ->label('Hapus file & record')
+                ->before(fn ($record, GoogleDriveService $drive) => $drive->delete($record->drive_file_id)),
+            Action::make('deleteRecordOnly')
+                ->label('Hapus record saja')
+                ->icon(Heroicon::OutlinedTrash)
+                ->color('warning')
+                ->requiresConfirmation()
+                ->modalHeading('Hapus record dokumen saja?')
+                ->modalDescription('Gunakan ini jika file sudah tidak ada di Google Drive. File di Drive tidak akan disentuh.')
+                ->modalSubmitActionLabel('Hapus record')
+                ->action(fn ($record) => $record->delete()),
         ]);
     }
 
