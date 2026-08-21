@@ -17,7 +17,14 @@ class AccreditationStructureTest extends TestCase
 
     public function test_public_upload_page_is_available_without_an_account(): void
     {
-        $this->get('/')->assertOk()->assertSee('Pilih EP, lalu unggah dokumennya.');
+        $this->seed(AccreditationStructureSeeder::class);
+
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('Pilih EP, lalu unggah dokumennya.')
+            ->assertSee('KPS')
+            ->assertSee('0/10')
+            ->assertDontSee('Panel petugas');
     }
 
     public function test_structure_seeder_creates_the_required_totals(): void

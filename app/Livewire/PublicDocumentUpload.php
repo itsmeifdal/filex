@@ -273,6 +273,10 @@ class PublicDocumentUpload extends Component
                     max(0, $element->required_document_count),
                 )
             ));
+        $workingGroupScores = $workingGroupRequiredDocuments
+            ->map(fn (int $required, int $workingGroupId): int => $required > 0
+                ? (int) round(min(10, ($workingGroupUploadedDocuments->get($workingGroupId, 0) / $required) * 10))
+                : 0);
 
         /** @var Collection<int, Collection<int, Standard>> $standardsByWorkingGroup */
         $standardsByWorkingGroup = $expandedWorkingGroups === []
@@ -336,6 +340,7 @@ class PublicDocumentUpload extends Component
             'deletableDocumentIds',
             'workingGroupRequiredDocuments',
             'workingGroupUploadedDocuments',
+            'workingGroupScores',
             'standardRequiredDocuments',
             'standardUploadedDocuments',
         ));

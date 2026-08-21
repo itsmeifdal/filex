@@ -48,6 +48,7 @@
                             @php($workingGroupHasTarget = $workingGroupRequiredDocuments->has($workingGroup->id))
                             @php($workingGroupRequired = (int) $workingGroupRequiredDocuments->get($workingGroup->id, 0))
                             @php($workingGroupUploaded = (int) $workingGroupUploadedDocuments->get($workingGroup->id, 0))
+                            @php($workingGroupScore = (int) $workingGroupScores->get($workingGroup->id, 0))
                             <div wire:key="working-group-{{ $workingGroup->id }}">
                                 <button
                                     wire:click="toggleWorkingGroup({{ $workingGroup->id }})"
@@ -56,11 +57,16 @@
                                     class="group flex w-full items-center gap-3 px-4 py-3.5 text-left hover:bg-emerald-50/60 sm:px-5"
                                 >
                                     <svg class="size-4 shrink-0 text-slate-400 transition-transform {{ $workingGroupOpen ? 'rotate-90' : '' }}" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="m7 5 5 5-5 5V5Z"/></svg>
-                                    <span class="grid size-8 shrink-0 place-items-center rounded-lg bg-amber-50 text-amber-600">
+                                    <span class="grid size-8 shrink-0 place-items-center rounded-lg bg-[#fff2c7] text-[#ad6500] shadow-sm">
                                         <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 7h6l2 2h10v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/></svg>
                                     </span>
                                     <span class="min-w-0 flex-1">
-                                        <span class="block truncate text-sm font-semibold text-slate-800 group-hover:text-emerald-800">{{ $workingGroup->name }}</span>
+                                        <span class="flex items-center gap-1.5 text-sm font-semibold text-slate-800 group-hover:text-emerald-800">
+                                            <span class="truncate">{{ $workingGroup->name }}</span>
+                                            @if ($workingGroupHasTarget)
+                                                <span class="shrink-0 text-emerald-700" title="Skor kelengkapan dokumen: {{ $workingGroupUploaded }}/{{ $workingGroupRequired }}">· {{ $workingGroupScore }}/10</span>
+                                            @endif
+                                        </span>
                                         <span class="block text-xs text-slate-500">{{ $workingGroup->standards_count }} Standar</span>
                                     </span>
                                     @if ($workingGroupHasTarget)
