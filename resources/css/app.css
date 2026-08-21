@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap');
 @import 'tailwindcss';
 @import '../../vendor/livewire/flux/dist/flux.css';
 
@@ -45,6 +46,47 @@
     ::file-selector-button {
         border-color: var(--color-gray-200, currentColor);
     }
+}
+
+/* Public-facing Sea Fern identity: forest, ocean, sage, and a restrained sun accent. */
+.sea-fern {
+    --color-slate-50: #f4f3eb;
+    --color-slate-100: #e6e8df;
+    --color-slate-200: #d3d9cf;
+    --color-slate-300: #b6c0b5;
+    --color-slate-400: #77877d;
+    --color-slate-500: #52645c;
+    --color-slate-600: #3c4f46;
+    --color-slate-700: #2c4137;
+    --color-slate-800: #1e342b;
+    --color-slate-900: #14281f;
+    --color-slate-950: #0b2018;
+    --color-emerald-50: #eef5ed;
+    --color-emerald-100: #dcebd9;
+    --color-emerald-200: #bfd8ba;
+    --color-emerald-300: #91bb8a;
+    --color-emerald-400: #5c9567;
+    --color-emerald-500: #397950;
+    --color-emerald-600: #256443;
+    --color-emerald-700: #1c5238;
+    --color-emerald-800: #153f2d;
+    --color-emerald-900: #102f23;
+    --color-emerald-950: #0b261c;
+    --color-sky-50: #eaf6f7;
+    --color-sky-100: #d3edf0;
+    --color-sky-200: #acdce2;
+    --color-sky-700: #176879;
+    --color-amber-50: #fff5d8;
+    --color-amber-100: #ffebad;
+    --color-amber-600: #b96e05;
+    --color-amber-700: #925306;
+    font-family: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+}
+
+.sea-fern h1,
+.sea-fern h2,
+.sea-fern h3 {
+    font-family: 'Fraunces', ui-serif, Georgia, serif;
 }
 
 [data-flux-field]:not(ui-radio, ui-checkbox) {
