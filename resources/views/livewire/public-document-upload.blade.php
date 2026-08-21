@@ -192,7 +192,7 @@
                             <div class="mx-auto grid size-14 place-items-center rounded-full bg-emerald-100 text-2xl font-bold text-emerald-700">✓</div>
                             <h3 class="mt-4 text-lg font-bold text-slate-950">Dokumen berhasil dikirim</h3>
                             <p class="mt-2 text-sm leading-6 text-slate-600">File telah tersimpan dan menunggu verifikasi petugas.</p>
-                            <button wire:click="uploadAnother" type="button" class="mt-5 rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800">Unggah file lain ke EP ini</button>
+                            <button wire:click="uploadAnother" type="button" class="mt-5 rounded-xl bg-sky-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-sky-800">Unggah file lain ke EP ini</button>
                         </div>
                     @else
                         <form wire:submit="uploadDocument" class="space-y-5 p-5">
@@ -206,7 +206,7 @@
                                 @error('file') <span class="mt-2 block text-xs text-red-600">{{ $message }}</span> @enderror
                             </label>
 
-                            <button type="submit" wire:loading.attr="disabled" wire:target="uploadDocument,file" class="w-full rounded-xl bg-emerald-700 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-emerald-800 disabled:cursor-wait disabled:opacity-60">
+                            <button type="submit" wire:loading.attr="disabled" wire:target="uploadDocument,file" class="w-full rounded-xl bg-sky-700 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-sky-800 disabled:cursor-wait disabled:opacity-60">
                                 <span wire:loading.remove wire:target="uploadDocument">Kirim dokumen ke EP ini</span>
                                 <span wire:loading wire:target="uploadDocument">Mengunggah ke Google Drive…</span>
                             </button>

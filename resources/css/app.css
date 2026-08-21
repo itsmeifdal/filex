@@ -76,6 +76,7 @@
     --color-sky-100: #d3edf0;
     --color-sky-200: #acdce2;
     --color-sky-700: #176879;
+    --color-sky-800: #105260;
     --color-amber-50: #fff5d8;
     --color-amber-100: #ffebad;
     --color-amber-600: #b96e05;
@@ -87,6 +88,42 @@
 .sea-fern h2,
 .sea-fern h3 {
     font-family: 'Fraunces', ui-serif, Georgia, serif;
+}
+
+.sea-fern {
+    background:
+        radial-gradient(circle at 85% 3%, rgb(189 225 218 / 45%), transparent 27rem),
+        linear-gradient(135deg, #f6f6ee 0%, #e8f0e8 48%, #dce9e1 100%);
+}
+
+.sea-fern > header {
+    background: linear-gradient(115deg, #0b403d 0%, #0d5d59 58%, #147b86 100%);
+    box-shadow: 0 10px 28px rgb(14 67 59 / 18%);
+}
+
+.sea-fern main article,
+.sea-fern main aside > section {
+    border-color: rgb(255 255 255 / 70%);
+    box-shadow: 10px 10px 24px rgb(90 118 102 / 20%), -8px -8px 20px rgb(255 255 250 / 72%);
+}
+
+.sea-fern main article > header {
+    background: linear-gradient(135deg, #e7f0e7, #d8e6dc);
+    border-color: rgb(126 157 136 / 18%);
+}
+
+.sea-fern main input[type='search'],
+.sea-fern main input[type='file'] {
+    box-shadow: inset 2px 2px 5px rgb(103 129 112 / 12%), inset -2px -2px 5px rgb(255 255 255 / 85%);
+}
+
+.sea-fern main .divide-y > * {
+    border-color: rgb(111 145 122 / 13%);
+}
+
+.sea-fern main .rounded-xl.bg-white,
+.sea-fern main .rounded-lg.bg-white {
+    box-shadow: 5px 5px 12px rgb(98 124 108 / 14%), -4px -4px 10px rgb(255 255 252 / 75%);
 }
 
 [data-flux-field]:not(ui-radio, ui-checkbox) {
