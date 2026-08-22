@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Exceptions\GoogleDriveReauthorizationRequiredException;
 use App\Models\AccreditationDocument;
 use App\Models\AccreditationGroup;
 use App\Models\AssessmentElement;
@@ -57,9 +58,12 @@ class PublicDocumentUpload extends Component
         try {
             $drive->syncDatabaseStructureFromDrive();
             $this->syncError = null;
+        } catch (GoogleDriveReauthorizationRequiredException) {
+            // Pengunjung tetap dapat memakai struktur terakhir tanpa melihat detail koneksi admin.
+            $this->syncError = null;
         } catch (Throwable $exception) {
             report($exception);
-            $this->syncError = 'Struktur Drive belum dapat diperbarui. Data sinkronisasi terakhir tetap ditampilkan.';
+            $this->syncError = null;
         }
     }
 

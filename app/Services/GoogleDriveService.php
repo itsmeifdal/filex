@@ -2,12 +2,14 @@
 
 namespace App\Services;
 
+use App\Exceptions\GoogleDriveReauthorizationRequiredException;
 use App\Models\AccreditationGroup;
 use App\Models\AssessmentElement;
 use App\Models\GoogleDriveSetting;
 use App\Models\Standard;
 use App\Models\WorkingGroup;
 use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
@@ -52,6 +54,7 @@ class GoogleDriveService
             'access_token' => (string) $response->json('access_token'),
             'refresh_token' => $response->json('refresh_token') ?: $setting->refresh_token,
             'token_expires_at' => now()->addSeconds((int) $response->json('expires_in', 3600) - 60),
+            'reauthorization_required_at' => null,
         ])->save();
 
         $userInfo = $this->http()->withToken($setting->access_token)
@@ -566,12 +569,26 @@ class GoogleDriveService
             return $setting->access_token;
         }
 
-        $response = $this->http()->asForm()->post('https://oauth2.googleapis.com/token', [
-            'client_id' => config('services.google_drive.client_id'),
-            'client_secret' => config('services.google_drive.client_secret'),
-            'refresh_token' => $setting->refresh_token,
-            'grant_type' => 'refresh_token',
-        ])->throw();
+        try {
+            $response = $this->http()->asForm()->post('https://oauth2.googleapis.com/token', [
+                'client_id' => config('services.google_drive.client_id'),
+                'client_secret' => config('services.google_drive.client_secret'),
+                'refresh_token' => $setting->refresh_token,
+                'grant_type' => 'refresh_token',
+            ])->throw();
+        } catch (RequestException $exception) {
+            if ($exception->response->status() === 400 && $exception->response->json('error') === 'invalid_grant') {
+                $setting->update([
+                    'access_token' => null,
+                    'token_expires_at' => null,
+                    'reauthorization_required_at' => now(),
+                ]);
+
+                throw new GoogleDriveReauthorizationRequiredException;
+            }
+
+            throw $exception;
+        }
 
         $setting->update([
             'access_token' => $response->json('access_token'),

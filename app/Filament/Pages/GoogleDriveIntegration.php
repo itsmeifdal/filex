@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Exceptions\GoogleDriveReauthorizationRequiredException;
 use App\Models\GoogleDriveSetting;
 use App\Services\GoogleDriveService;
 use BackedEnum;
@@ -51,6 +52,12 @@ class GoogleDriveIntegration extends Page
                 ->body("{$result['root']}: {$result['groups']} kelompok dan {$result['working_groups']} Pokja dipasangkan.")
                 ->success()
                 ->send();
+        } catch (GoogleDriveReauthorizationRequiredException) {
+            Notification::make()
+                ->title('Hubungkan ulang Google Drive')
+                ->body('Izin akses Google telah kedaluwarsa atau dicabut. Gunakan tombol Hubungkan ulang Google Drive.')
+                ->warning()
+                ->send();
         } catch (Throwable $exception) {
             report($exception);
             Notification::make()->title('Sinkronisasi gagal')->body($exception->getMessage())->danger()->send();
@@ -62,6 +69,12 @@ class GoogleDriveIntegration extends Page
         try {
             $drive->testConnection();
             Notification::make()->title('Koneksi Google Drive aktif')->success()->send();
+        } catch (GoogleDriveReauthorizationRequiredException) {
+            Notification::make()
+                ->title('Hubungkan ulang Google Drive')
+                ->body('Izin akses Google telah kedaluwarsa atau dicabut. Gunakan tombol Hubungkan ulang Google Drive.')
+                ->warning()
+                ->send();
         } catch (Throwable $exception) {
             report($exception);
             Notification::make()->title('Koneksi Google Drive gagal')->body($exception->getMessage())->danger()->send();

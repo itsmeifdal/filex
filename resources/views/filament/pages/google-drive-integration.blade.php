@@ -11,7 +11,13 @@
         <x-slot name="description">Aplikasi memakai OAuth 2.0 untuk membaca struktur lama dan mengunggah dokumen hanya di bawah folder induk akreditasi.</x-slot>
 
         <div class="space-y-4">
-            @if ($this->setting->refresh_token)
+            @if ($this->setting->reauthorization_required_at)
+                <div class="rounded-xl border border-warning-200 bg-warning-50 p-4 text-sm text-warning-800 dark:border-warning-800 dark:bg-warning-950 dark:text-warning-200">
+                    <p class="font-semibold">Koneksi Google Drive perlu dihubungkan ulang.</p>
+                    <p class="mt-1">Token akses untuk akun {{ $this->setting->connected_email ?: 'Google Drive' }} telah kedaluwarsa atau dicabut. Data sinkronisasi terakhir tetap tersimpan.</p>
+                </div>
+                <x-filament::button tag="a" href="{{ route('google-drive.connect') }}">Hubungkan ulang Google Drive</x-filament::button>
+            @elseif ($this->setting->refresh_token)
                 <p class="text-sm">Terhubung sebagai <strong>{{ $this->setting->connected_email ?: 'akun Google' }}</strong>.</p>
                 <div class="flex flex-wrap gap-3">
                     <x-filament::button wire:click="testConnection" color="gray">Uji koneksi</x-filament::button>
@@ -49,7 +55,7 @@
             </div>
             <div class="flex flex-wrap gap-3">
                 <x-filament::button type="submit">Simpan ID folder</x-filament::button>
-                @if ($this->setting->refresh_token)
+                @if ($this->setting->refresh_token && ! $this->setting->reauthorization_required_at)
                     <x-filament::button type="button" wire:click="syncStructure" wire:loading.attr="disabled" wire:target="syncStructure" color="gray">Cari dan sinkronkan sekarang</x-filament::button>
                 @endif
             </div>

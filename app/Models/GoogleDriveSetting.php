@@ -13,8 +13,9 @@ use Illuminate\Support\Carbon;
  * @property string|null $root_folder_id
  * @property string|null $connected_email
  * @property Carbon|null $structure_synced_at
+ * @property Carbon|null $reauthorization_required_at
  */
-#[Fillable(['access_token', 'refresh_token', 'token_expires_at', 'root_folder_id', 'connected_email', 'structure_synced_at'])]
+#[Fillable(['access_token', 'refresh_token', 'token_expires_at', 'root_folder_id', 'connected_email', 'structure_synced_at', 'reauthorization_required_at'])]
 class GoogleDriveSetting extends Model
 {
     protected function casts(): array
@@ -24,6 +25,7 @@ class GoogleDriveSetting extends Model
             'refresh_token' => 'encrypted',
             'token_expires_at' => 'datetime',
             'structure_synced_at' => 'datetime',
+            'reauthorization_required_at' => 'datetime',
         ];
     }
 

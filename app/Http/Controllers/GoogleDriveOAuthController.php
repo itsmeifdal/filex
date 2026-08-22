@@ -58,6 +58,7 @@ class GoogleDriveOAuthController extends Controller
             'refresh_token' => null,
             'token_expires_at' => null,
             'connected_email' => null,
+            'reauthorization_required_at' => null,
         ]);
 
         return back()->with('drive_success', 'Google Drive telah diputuskan.');
