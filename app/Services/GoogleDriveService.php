@@ -271,6 +271,8 @@ class GoogleDriveService
             }
         });
 
+        GoogleDriveSetting::current()->update(['structure_synced_at' => now()]);
+
         return ['root' => (string) config('services.google_drive.root_folder_name')] + $counts;
     }
 

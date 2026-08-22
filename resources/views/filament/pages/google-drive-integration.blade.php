@@ -15,12 +15,22 @@
                 <p class="text-sm">Terhubung sebagai <strong>{{ $this->setting->connected_email ?: 'akun Google' }}</strong>.</p>
                 <div class="flex flex-wrap gap-3">
                     <x-filament::button wire:click="testConnection" color="gray">Uji koneksi</x-filament::button>
-                    <x-filament::button wire:click="syncStructure">Sinkronkan struktur folder</x-filament::button>
+                    <x-filament::button wire:click="syncStructure" wire:loading.attr="disabled" wire:target="syncStructure">
+                        <span wire:loading.remove wire:target="syncStructure">Sinkronkan sekarang</span>
+                        <span wire:loading wire:target="syncStructure">Menyinkronkan struktur…</span>
+                    </x-filament::button>
                     <form method="POST" action="{{ route('google-drive.disconnect') }}" onsubmit="return confirm('Putuskan Google Drive?')">
                         @csrf
                         <x-filament::button type="submit" color="danger">Putuskan</x-filament::button>
                     </form>
                 </div>
+                <p class="text-sm text-gray-600 dark:text-gray-300">
+                    @if ($this->setting->structure_synced_at)
+                        Sinkronisasi struktur terakhir: <strong>{{ $this->setting->structure_synced_at->timezone(config('app.timezone'))->translatedFormat('d F Y, H:i') }}</strong>.
+                    @else
+                        Struktur folder belum pernah disinkronkan secara berhasil.
+                    @endif
+                </p>
             @else
                 <p class="text-sm text-gray-600 dark:text-gray-300">Belum terhubung. Pastikan Client ID dan Client Secret telah diisi di file environment.</p>
                 <x-filament::button tag="a" href="{{ route('google-drive.connect') }}">Hubungkan Google Drive</x-filament::button>
@@ -40,7 +50,7 @@
             <div class="flex flex-wrap gap-3">
                 <x-filament::button type="submit">Simpan ID folder</x-filament::button>
                 @if ($this->setting->refresh_token)
-                    <x-filament::button type="button" wire:click="syncStructure" color="gray">Cari dan sinkronkan</x-filament::button>
+                    <x-filament::button type="button" wire:click="syncStructure" wire:loading.attr="disabled" wire:target="syncStructure" color="gray">Cari dan sinkronkan sekarang</x-filament::button>
                 @endif
             </div>
         </form>
