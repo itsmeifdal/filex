@@ -204,11 +204,6 @@ class PublicDocumentUpload extends Component
     {
         $document = AccreditationDocument::query()->findOrFail($documentId);
 
-        abort_unless(
-            $document->canBeDeletedFromIp((string) request()->ip()),
-            403,
-        );
-
         try {
             $drive->delete($document->drive_file_id);
             $document->delete();
@@ -323,15 +318,6 @@ class PublicDocumentUpload extends Component
                 ->groupBy('standard_id');
 
         $visibleElementIds = $elementsByStandard->flatten(1)->pluck('id');
-        $deletableDocumentIds = $visibleElementIds->isEmpty()
-            ? []
-            : AccreditationDocument::query()
-                ->whereIn('assessment_element_id', $visibleElementIds)
-                ->where('uploader_ip_hash', AccreditationDocument::hashUploaderIp((string) request()->ip()))
-                ->pluck('id')
-                ->map(fn ($id): int => (int) $id)
-                ->all();
-
         $selectedElement = $this->assessmentElementId
             ? AssessmentElement::query()->with('standard.workingGroup.accreditationGroup')->find($this->assessmentElementId)
             : null;
@@ -341,7 +327,6 @@ class PublicDocumentUpload extends Component
             'standardsByWorkingGroup',
             'elementsByStandard',
             'selectedElement',
-            'deletableDocumentIds',
             'workingGroupRequiredDocuments',
             'workingGroupUploadedDocuments',
             'workingGroupScores',

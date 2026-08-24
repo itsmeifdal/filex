@@ -9,7 +9,7 @@ use Tests\TestCase;
 class AccreditationDocumentIpTest extends TestCase
 {
     #[Test]
-    public function only_the_same_ip_hash_can_delete_a_public_upload(): void
+    public function uploader_ip_is_hashed_before_it_is_stored(): void
     {
         config(['app.key' => 'base64:test-key-for-ip-hashing']);
 
@@ -17,8 +17,6 @@ class AccreditationDocumentIpTest extends TestCase
             'uploader_ip_hash' => AccreditationDocument::hashUploaderIp('192.0.2.10'),
         ]);
 
-        $this->assertTrue($document->canBeDeletedFromIp('192.0.2.10'));
-        $this->assertFalse($document->canBeDeletedFromIp('192.0.2.11'));
         $this->assertNotSame('192.0.2.10', $document->uploader_ip_hash);
         $this->assertStringNotContainsString('192.0.2.10', $document->uploader_ip_hash);
     }

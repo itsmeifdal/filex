@@ -137,9 +137,7 @@
                                                                                 </span>
                                                                                 <span class="flex shrink-0 items-center gap-2">
                                                                                     <a href="{{ route('documents.preview', $document) }}" target="_blank" rel="noopener" class="rounded-lg border border-sky-200 px-2.5 py-1.5 text-xs font-semibold text-sky-700 hover:bg-sky-50">Preview</a>
-                                                                                    @if (in_array($document->id, $deletableDocumentIds, true))
-                                                                                        <button wire:click="deleteDocument({{ $document->id }})" wire:confirm="Hapus file ini dari Google Drive?" type="button" class="rounded-lg border border-red-200 px-2.5 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50">Hapus</button>
-                                                                                    @endif
+                                                                                    <button wire:click="deleteDocument({{ $document->id }})" wire:confirm="Hapus file ini dari Google Drive?" type="button" class="rounded-lg border border-red-200 px-2.5 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50">Hapus</button>
                                                                                 </span>
                                                                             </div>
                                                                         @endforeach

@@ -51,12 +51,6 @@ class AccreditationDocument extends Model
         return hash_hmac('sha256', $ipAddress, $key);
     }
 
-    public function canBeDeletedFromIp(string $ipAddress): bool
-    {
-        return is_string($this->uploader_ip_hash)
-            && hash_equals($this->uploader_ip_hash, self::hashUploaderIp($ipAddress));
-    }
-
     /** @return BelongsTo<AssessmentElement, $this> */
     public function assessmentElement(): BelongsTo
     {
