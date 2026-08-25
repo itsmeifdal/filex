@@ -158,6 +158,18 @@
                     </div>
                 </article>
             @endforeach
+            <div class="flex justify-end pt-1">
+                <a
+                    href="{{ $whatsAppEvaluationUrl }}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Bagikan evaluasi upload file ke Ketua Akreditasi"
+                    title="Bagikan evaluasi upload file"
+                    class="grid size-10 place-items-center rounded-xl bg-emerald-700 text-white shadow-sm transition hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2"
+                >
+                    <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="18" cy="5" r="2"/><circle cx="6" cy="12" r="2"/><circle cx="18" cy="19" r="2"/><path d="m8 11 8-5M8 13l8 5"/></svg>
+                </a>
+            </div>
         </section>
 
         <aside id="upload-panel" class="scroll-mt-4 xl:sticky xl:top-5 xl:self-start">
@@ -222,4 +234,5 @@
             @endif
         </aside>
     </div>
+
 </div>

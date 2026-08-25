@@ -276,6 +276,34 @@ class PublicDocumentUpload extends Component
             ->map(fn (int $required, int $workingGroupId): int => $required > 0
                 ? (int) round(min(10, ($workingGroupUploadedDocuments->get($workingGroupId, 0) / $required) * 10))
                 : 0);
+        $evaluationLines = ['Evaluasi Upload File'];
+
+        foreach ($groups as $group) {
+            $evaluationLines[] = '';
+            $evaluationLines[] = mb_strtoupper($group->name);
+
+            $workingGroupsByScore = $group->workingGroups->sort(
+                function (WorkingGroup $left, WorkingGroup $right) use ($workingGroupScores): int {
+                    $leftScore = (int) $workingGroupScores->get($left->id, 0);
+                    $rightScore = (int) $workingGroupScores->get($right->id, 0);
+
+                    return $leftScore === $rightScore
+                        ? strnatcasecmp($left->name, $right->name)
+                        : $rightScore <=> $leftScore;
+                },
+            );
+
+            foreach ($workingGroupsByScore as $workingGroup) {
+                $required = (int) $workingGroupRequiredDocuments->get($workingGroup->id, 0);
+                $uploaded = (int) $workingGroupUploadedDocuments->get($workingGroup->id, 0);
+                $score = (int) $workingGroupScores->get($workingGroup->id, 0);
+
+                $evaluationLines[] = sprintf('%s: %d/10 (%d/%d)', $workingGroup->name, $score, $uploaded, $required);
+            }
+        }
+
+        $whatsAppEvaluationUrl = 'https://web.whatsapp.com/send?phone=6281321391392&text='
+            .rawurlencode(implode("\n", $evaluationLines));
 
         /** @var Collection<int, Collection<int, Standard>> $standardsByWorkingGroup */
         $standardsByWorkingGroup = $expandedWorkingGroups === []
@@ -330,6 +358,7 @@ class PublicDocumentUpload extends Component
             'workingGroupRequiredDocuments',
             'workingGroupUploadedDocuments',
             'workingGroupScores',
+            'whatsAppEvaluationUrl',
             'standardRequiredDocuments',
             'standardUploadedDocuments',
         ));
