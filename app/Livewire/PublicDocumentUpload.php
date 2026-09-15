@@ -134,9 +134,9 @@ class PublicDocumentUpload extends Component
             'standardId' => ['required', 'integer', 'exists:standards,id'],
             'assessmentElementId' => ['required', 'integer', 'exists:assessment_elements,id'],
             'website' => ['nullable', 'max:0'],
-            'file' => ['required', 'file', 'max:20480', 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,jpg,jpeg,png'],
+            'file' => ['required', 'file', 'max:30720', 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,jpg,jpeg,png'],
         ], [
-            'file.max' => 'Ukuran file maksimal 20 MB.',
+            'file.max' => 'Ukuran file maksimal 30 MB.',
             'file.mimes' => 'Format yang diizinkan: PDF, Word, Excel, PowerPoint, JPG, dan PNG.',
             'required' => ':attribute wajib diisi.',
         ], [

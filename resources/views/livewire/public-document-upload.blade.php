@@ -210,7 +210,7 @@
 
                             <label class="block rounded-xl border-2 border-dashed border-slate-300 p-4 text-center hover:border-emerald-500">
                                 <span class="block text-sm font-semibold text-slate-700">Pilih file dokumen *</span>
-                                <span class="mt-1 block text-xs text-slate-500">PDF, Office, JPG, atau PNG · Maks. 20 MB</span>
+                                <span class="mt-1 block text-xs text-slate-500">PDF, Office, JPG, atau PNG · Maks. 30 MB</span>
                                 <input wire:model="file" type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png" class="mt-4 block w-full text-xs text-slate-600 file:mr-2 file:rounded-lg file:border-0 file:bg-emerald-100 file:px-3 file:py-2 file:font-semibold file:text-emerald-800">
                                 <span wire:loading wire:target="file" class="mt-2 block text-xs text-emerald-700">Menyiapkan file…</span>
                                 @error('file') <span class="mt-2 block text-xs text-red-600">{{ $message }}</span> @enderror
