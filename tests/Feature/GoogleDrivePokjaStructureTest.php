@@ -30,7 +30,9 @@ class GoogleDrivePokjaStructureTest extends TestCase
         $this->assertSame(0, $skp['SKP 1 / EP 3']['count']);
         $this->assertSame(2, $skp['SKP 3.1 / EP 3']['count']);
         $this->assertCount(44, $pmkp);
-        $this->assertSame(62, $pmkp->sum('count'));
+        $this->assertSame(54, $pmkp->sum('count'));
+        $this->assertSame(1, $pmkp['PMKP 6 / EP 1']['count']);
+        $this->assertSame(1, $pmkp['PMKP 6 / EP 2']['count']);
         $this->assertSame(1, $pmkp['PMKP 4.1 / EP 1']['count']);
         $this->assertSame(6, config('accreditation.drive_structures.PMKP.11'));
         $this->assertSame(3, $pmkp['PMKP 11 / EP 4']['count']);
