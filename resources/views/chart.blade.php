@@ -134,7 +134,7 @@
                 <p class="mb-1 text-[0.68rem] font-bold uppercase tracking-[0.16em] text-emerald-700">Monitoring dokumen</p>
                 <h1 class="sea-fern-heading text-2xl font-bold text-emerald-950 sm:text-3xl">Progress Upload per Pokja</h1>
                 <p class="mt-1 max-w-3xl text-xs leading-5 text-slate-600 sm:text-sm">
-                    Persentase mengikuti skor penilaian 0–10. Setiap batang menampilkan jumlah dokumen yang sudah terunggah dibandingkan targetnya.
+                    Capaian dibulatkan per 10% agar mudah dibaca. Capaian belum lengkap yang mendekati 100% ditampilkan dalam angka bulat ke bawah supaya 100% hanya muncul ketika semua dokumen telah terunggah.
                 </p>
             </div>
 
@@ -142,7 +142,7 @@
                 <div class="border-b border-slate-100 bg-emerald-50/70 px-5 py-3 sm:px-6">
                     <div class="flex items-center justify-between gap-3">
                         <h2 class="font-semibold text-emerald-950">Urutan capaian tertinggi</h2>
-                        <span class="rounded-full bg-white px-3 py-1 text-xs font-semibold text-emerald-800 shadow-sm">Skor 0–10 → 0–100%</span>
+                        <span class="rounded-full bg-white px-3 py-1 text-xs font-semibold text-emerald-800 shadow-sm">100% = target lengkap</span>
                     </div>
                 </div>
 
@@ -166,13 +166,13 @@
                                     @endphp
                                     <article class="upload-chart-row" tabindex="0">
                                         <p class="upload-chart-label">{{ $item['code'] }}</p>
-                                        <div class="upload-chart-plot" role="progressbar" aria-label="Progress {{ $item['name'] }}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ $item['percentage'] }}" title="{{ $item['name'] }}: {{ $item['percentage'] }}% ({{ $item['uploaded'] }}/{{ $item['required'] }} dokumen)">
+                                        <div class="upload-chart-plot" role="progressbar" aria-label="Progress {{ $item['name'] }}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ $item['percentage'] }}" title="{{ $item['name'] }}: {{ $item['display_percentage'] }}% ({{ $item['uploaded'] }}/{{ $item['required'] }} dokumen)">
                                             <div class="upload-chart-bar" style="width: {{ $item['percentage'] }}%; background: {{ $barColor }}"></div>
                                             @if ($item['percentage'] === 0)
                                                 <span class="upload-chart-zero-marker" style="background: {{ $barColor }}" aria-hidden="true"></span>
                                             @endif
                                         </div>
-                                        <p class="upload-chart-value"><strong>{{ $item['percentage'] }}%</strong> ({{ $item['uploaded'] }}/{{ $item['required'] }} dokumen)</p>
+                                        <p class="upload-chart-value"><strong>{{ $item['display_percentage'] }}%</strong> ({{ $item['uploaded'] }}/{{ $item['required'] }} dokumen)</p>
                                     </article>
                                 @endforeach
                             </div>

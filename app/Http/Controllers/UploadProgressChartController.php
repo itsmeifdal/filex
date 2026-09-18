@@ -50,9 +50,19 @@ class UploadProgressChartController extends Controller
             ->map(function (WorkingGroup $workingGroup) use ($requiredDocuments, $uploadedDocuments): array {
                 $required = (int) $requiredDocuments->get($workingGroup->id, 0);
                 $uploaded = (int) $uploadedDocuments->get($workingGroup->id, 0);
-                $score = $required > 0
-                    ? (int) round(min(10, ($uploaded / $required) * 10))
+                $percentage = $required > 0
+                    ? round(min(100, ($uploaded / $required) * 100), 1)
                     : 0;
+
+                // Keep the chart easy to scan in 10% bands, but never imply that
+                // an incomplete working group is fully complete.
+                $displayPercentage = $uploaded >= $required
+                    ? 100
+                    : (int) round($percentage / 10) * 10;
+
+                if ($displayPercentage === 100 && $uploaded < $required) {
+                    $displayPercentage = (int) floor($percentage);
+                }
 
                 return [
                     'group' => $workingGroup->accreditationGroup->name,
@@ -60,8 +70,8 @@ class UploadProgressChartController extends Controller
                     'name' => $workingGroup->name,
                     'uploaded' => $uploaded,
                     'required' => $required,
-                    'score' => $score,
-                    'percentage' => $score * 10,
+                    'percentage' => $percentage,
+                    'display_percentage' => $displayPercentage,
                 ];
             })
             ->sortBy([
