@@ -18,11 +18,17 @@
             <h1 class="mt-3 text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">Pilih EP, lalu unggah dokumennya.</h1>
             <p class="mt-3 leading-7 text-slate-600">Semua Pokja langsung terlihat. Buka Pokja untuk melihat Standar, lalu buka Standar untuk memilih Elemen Penilaian.</p>
         </div>
-        <label class="relative block w-full lg:max-w-sm">
-            <span class="sr-only">Cari Pokja</span>
-            <svg class="pointer-events-none absolute left-3.5 top-3.5 size-5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-            <input wire:model.live.debounce.300ms="search" type="search" placeholder="Cari nama atau kode Pokja…" class="w-full rounded-xl border-slate-300 bg-white py-3 pl-11 pr-4 text-sm shadow-sm focus:border-emerald-600 focus:ring-emerald-600">
-        </label>
+        <div class="flex w-full flex-col gap-3 sm:flex-row lg:max-w-xl">
+            <label class="relative block min-w-0 flex-1">
+                <span class="sr-only">Cari Pokja</span>
+                <svg class="pointer-events-none absolute left-3.5 top-3.5 size-5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+                <input wire:model.live.debounce.300ms="search" type="search" placeholder="Cari nama atau kode Pokja…" class="w-full rounded-xl border-slate-300 bg-white py-3 pl-11 pr-4 text-sm shadow-sm focus:border-emerald-600 focus:ring-emerald-600">
+            </label>
+            <a href="{{ route('documents.export') }}" class="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-emerald-700 px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2">
+                <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+                Export Excel
+            </a>
+        </div>
     </section>
 
     <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_390px]">
