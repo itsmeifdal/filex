@@ -10,7 +10,6 @@ use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
@@ -40,9 +39,8 @@ class AccreditationDocumentResource extends Resource
             Select::make('status')->label('Status')->options([
                 'pending' => 'Menunggu',
                 'verified' => 'Diverifikasi',
-                'rejected' => 'Ditolak',
+                'rejected' => 'Perlu perbaikan',
             ])->required(),
-            Textarea::make('review_notes')->label('Catatan pemeriksaan')->rows(4)->columnSpanFull(),
         ]);
     }
 
@@ -60,9 +58,10 @@ class AccreditationDocumentResource extends Resource
                 TextEntry::make('uploader_name')->label('Pengunggah'),
                 TextEntry::make('uploader_unit')->label('Unit'),
                 TextEntry::make('status')->label('Status')->badge()->formatStateUsing(fn (string $state) => match ($state) {
-                    'verified' => 'Diverifikasi', 'rejected' => 'Ditolak', default => 'Menunggu',
+                    'verified' => 'Terverifikasi', 'rejected' => 'Perlu perbaikan', default => 'Menunggu verifikasi',
                 }),
-                TextEntry::make('review_notes')->label('Catatan')->placeholder('—')->columnSpanFull(),
+                TextEntry::make('reviewed_at')->label('Diverifikasi pada')->dateTime('d M Y H:i')->placeholder('—'),
+                TextEntry::make('reviewer.name')->label('Diverifikasi oleh')->placeholder('—'),
             ]),
         ]);
     }
@@ -77,13 +76,36 @@ class AccreditationDocumentResource extends Resource
             TextColumn::make('uploader_name')->label('Pengunggah')->searchable()->description(fn ($record) => $record->uploader_unit),
             TextColumn::make('size')->label('Ukuran')->formatStateUsing(fn (int $state) => number_format($state / 1024 / 1024, 2).' MB'),
             TextColumn::make('status')->label('Status')->badge()->formatStateUsing(fn (string $state) => match ($state) {
-                'verified' => 'Diverifikasi', 'rejected' => 'Ditolak', default => 'Menunggu',
+                'verified' => 'Terverifikasi', 'rejected' => 'Perlu perbaikan', default => 'Menunggu verifikasi',
             })->color(fn (string $state) => match ($state) {
                 'verified' => 'success', 'rejected' => 'danger', default => 'warning',
             }),
         ])->filters([
-            SelectFilter::make('status')->label('Status')->options(['pending' => 'Menunggu', 'verified' => 'Diverifikasi', 'rejected' => 'Ditolak']),
+            SelectFilter::make('status')->label('Status')->options(['pending' => 'Menunggu verifikasi', 'verified' => 'Terverifikasi', 'rejected' => 'Perlu perbaikan']),
         ])->recordActions([
+            Action::make('preview')
+                ->label('Preview')
+                ->icon(Heroicon::OutlinedEye)
+                ->url(fn (AccreditationDocument $record): string => route('documents.preview', $record))
+                ->openUrlInNewTab(),
+            Action::make('verify')
+                ->label('Terverifikasi')
+                ->icon(Heroicon::OutlinedCheckCircle)
+                ->color('success')
+                ->requiresConfirmation()
+                ->modalHeading('Tandai dokumen terverifikasi?')
+                ->modalDescription('Status ini menandakan dokumen telah lolos verifikasi internal.')
+                ->visible(fn (AccreditationDocument $record): bool => $record->status !== 'verified')
+                ->action(fn (AccreditationDocument $record) => $record->update(['status' => 'verified'])),
+            Action::make('needsRevision')
+                ->label('Perlu perbaikan')
+                ->icon(Heroicon::OutlinedExclamationTriangle)
+                ->color('warning')
+                ->requiresConfirmation()
+                ->modalHeading('Tandai dokumen perlu perbaikan?')
+                ->modalDescription('Keterangan perbaikan disampaikan pada rapat, di luar sistem.')
+                ->visible(fn (AccreditationDocument $record): bool => $record->status !== 'rejected')
+                ->action(fn (AccreditationDocument $record) => $record->update(['status' => 'rejected'])),
             Action::make('download')->label('Unduh')->icon(Heroicon::OutlinedArrowDownTray)->url(fn ($record) => route('documents.download', $record)),
             EditAction::make()->label('Periksa'),
             DeleteAction::make()

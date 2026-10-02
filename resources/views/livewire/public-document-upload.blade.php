@@ -135,15 +135,20 @@
                                                                 @if ($element->documents->isNotEmpty())
                                                                     <div class="space-y-2 border-t border-dashed border-slate-200 bg-slate-50/70 px-3 py-3 sm:pl-14 sm:pr-4">
                                                                         @foreach ($element->documents as $document)
+                                                                            @php($documentStatus = match ($document->status) {
+                                                                                'verified' => ['Terverifikasi', 'bg-emerald-100 text-emerald-800'],
+                                                                                'rejected' => ['Perlu perbaikan', 'bg-amber-100 text-amber-800'],
+                                                                                default => ['Menunggu verifikasi', 'bg-slate-100 text-slate-600'],
+                                                                            })
                                                                             <div wire:key="document-{{ $document->id }}" class="flex flex-col gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2.5 sm:flex-row sm:items-center">
                                                                                 <span class="grid size-8 shrink-0 place-items-center rounded-lg bg-sky-50 text-sky-700" aria-hidden="true">📄</span>
                                                                                 <span class="min-w-0 flex-1">
                                                                                     <span class="block truncate text-sm font-semibold text-slate-700" title="{{ $document->original_name }}">{{ $document->original_name }}</span>
                                                                                     <span class="block text-xs text-slate-400">{{ number_format($document->size / 1024, 1) }} KB · {{ $document->created_at->format('d M Y H:i') }}</span>
+                                                                                    <span class="mt-1 inline-flex w-fit rounded-md px-2 py-1 text-xs font-bold {{ $documentStatus[1] }}">{{ $documentStatus[0] }}</span>
                                                                                 </span>
                                                                                 <span class="flex shrink-0 items-center gap-2">
                                                                                     <a href="{{ route('documents.preview', $document) }}" target="_blank" rel="noopener" class="rounded-lg border border-sky-200 px-2.5 py-1.5 text-xs font-semibold text-sky-700 hover:bg-sky-50">Preview</a>
-                                                                                    <button wire:click="deleteDocument({{ $document->id }})" wire:confirm="Hapus file ini dari Google Drive?" type="button" class="rounded-lg border border-red-200 px-2.5 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50">Hapus</button>
                                                                                 </span>
                                                                             </div>
                                                                         @endforeach
