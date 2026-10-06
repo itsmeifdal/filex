@@ -344,24 +344,36 @@ class GoogleDriveService
         }, $fileName, ['Content-Type' => $mimeType]);
     }
 
-    public function preview(string $fileId, string $fileName, string $mimeType): StreamedResponse
+    public function preview(string $fileId, string $fileName, string $mimeType, ?string $range = null): StreamedResponse
     {
         $token = $this->accessToken();
+        $request = $this->http()->timeout(300)->withToken($token)->withOptions(['stream' => true]);
 
-        return response()->stream(function () use ($fileId, $token): void {
-            $response = $this->http()->withToken($token)->withOptions(['stream' => true])
-                ->get(self::API_URL.'/files/'.$fileId, ['alt' => 'media'])
-                ->throw();
-            $body = $response->toPsrResponse()->getBody();
+        if (filled($range)) {
+            $request->withHeaders(['Range' => $range]);
+        }
 
+        $response = $request->get(self::API_URL.'/files/'.$fileId, ['alt' => 'media'])->throw();
+        $body = $response->toPsrResponse()->getBody();
+        $headers = [
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => HeaderUtils::makeDisposition(HeaderUtils::DISPOSITION_INLINE, $fileName),
+            'Accept-Ranges' => 'bytes',
+            'X-Accel-Buffering' => 'no',
+            'X-Content-Type-Options' => 'nosniff',
+        ];
+
+        foreach (['Content-Length', 'Content-Range'] as $header) {
+            if ($value = $response->header($header)) {
+                $headers[$header] = $value;
+            }
+        }
+
+        return response()->stream(function () use ($body): void {
             while (! $body->eof()) {
                 echo $body->read(8192);
             }
-        }, 200, [
-            'Content-Type' => $mimeType,
-            'Content-Disposition' => HeaderUtils::makeDisposition(HeaderUtils::DISPOSITION_INLINE, $fileName),
-            'X-Content-Type-Options' => 'nosniff',
-        ]);
+        }, $response->status(), $headers);
     }
 
     public function delete(string $fileId): void

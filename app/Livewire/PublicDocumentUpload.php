@@ -202,8 +202,6 @@ class PublicDocumentUpload extends Component
 
     public function deleteDocument(int $documentId, GoogleDriveService $drive): void
     {
-        abort_unless(auth()->user()?->isAdmin(), 403);
-
         $document = AccreditationDocument::query()->findOrFail($documentId);
 
         try {
