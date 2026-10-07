@@ -43,12 +43,10 @@ class WorkingGroupArchiveService
                 throw new RuntimeException('Arsip ZIP tidak dapat dibuka.');
             }
 
-            $rootPath = $this->safeArchiveSegment($workingGroup->code ?: $workingGroup->name);
-            $zip->addEmptyDir($rootPath);
-            $archiveEntries = [$rootPath => true];
+            $archiveEntries = [];
 
             foreach ($workingGroup->standards as $standard) {
-                $standardPath = $rootPath.'/'.$this->safeArchiveSegment($standard->title ?: $standard->code);
+                $standardPath = $this->safeArchiveSegment($standard->title ?: $standard->code);
                 $this->addDirectory($zip, $archiveEntries, $standardPath);
 
                 foreach ($standard->assessmentElements as $element) {
@@ -146,7 +144,7 @@ class WorkingGroupArchiveService
 
     private function cachePath(int $workingGroupId): string
     {
-        return "archives/working-groups/{$workingGroupId}.zip";
+        return "archives/working-groups/{$workingGroupId}-v2.zip";
     }
 
     /** @param array<string, true> $entries */

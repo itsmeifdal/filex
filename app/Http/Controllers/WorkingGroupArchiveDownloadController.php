@@ -18,7 +18,7 @@ class WorkingGroupArchiveDownloadController extends Controller
         );
 
         $archivePath = $archives->create($workingGroup);
-        $fileName = $workingGroup->code.'-dokumen.zip';
+        $fileName = $workingGroup->code.'.zip';
 
         return response()->download($archivePath, $fileName, ['Content-Type' => 'application/zip']);
     }
