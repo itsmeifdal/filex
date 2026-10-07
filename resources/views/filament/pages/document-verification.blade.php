@@ -19,17 +19,20 @@
                         @php($workingGroupOpen = in_array($workingGroup->id, $this->expandedWorkingGroups, true))
                         @php($counts = $workingGroupVerificationCounts->get($workingGroup->id, ['total' => 0, 'pending' => 0, 'verified' => 0, 'rejected' => 0]))
                         <div>
-                            <button wire:click="toggleWorkingGroup({{ $workingGroup->id }})" type="button" aria-expanded="{{ $workingGroupOpen ? 'true' : 'false' }}" class="flex w-full items-center gap-3 px-5 py-4 text-left transition hover:bg-emerald-50 dark:hover:bg-emerald-400/5">
-                                <svg class="size-4 shrink-0 text-gray-400 transition-transform {{ $workingGroupOpen ? 'rotate-90' : '' }}" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="m7 5 5 5-5 5V5Z"/></svg>
-                                <span class="min-w-0 flex-1">
-                                    <span class="block font-semibold text-gray-900 dark:text-white">{{ $workingGroup->name }}</span>
-                                    <span class="mt-0.5 block text-xs text-gray-500 dark:text-gray-400">{{ $workingGroup->standards_count }} Standar · {{ $counts['total'] }} file</span>
-                                </span>
-                                <span class="hidden text-right text-xs sm:block">
+                            <div class="flex items-center gap-3 px-5 py-4 transition hover:bg-emerald-50 dark:hover:bg-emerald-400/5">
+                                <button wire:click="toggleWorkingGroup({{ $workingGroup->id }})" type="button" aria-expanded="{{ $workingGroupOpen ? 'true' : 'false' }}" class="flex min-w-0 flex-1 items-center gap-3 text-left">
+                                    <svg class="size-4 shrink-0 text-gray-400 transition-transform {{ $workingGroupOpen ? 'rotate-90' : '' }}" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="m7 5 5 5-5 5V5Z"/></svg>
+                                    <span class="min-w-0 flex-1">
+                                        <span class="block font-semibold text-gray-900 dark:text-white">{{ $workingGroup->name }}</span>
+                                        <span class="mt-0.5 block text-xs text-gray-500 dark:text-gray-400">{{ $workingGroup->standards_count }} Standar · {{ $counts['total'] }} file</span>
+                                    </span>
+                                </button>
+                                <span class="hidden shrink-0 text-right text-xs sm:block">
                                     <span class="block font-bold text-amber-700 dark:text-amber-300">{{ $counts['pending'] }} menunggu</span>
                                     <span class="block text-emerald-700 dark:text-emerald-300">{{ $counts['verified'] }} terverifikasi</span>
                                 </span>
-                            </button>
+                                {{ ($this->getAction('downloadWorkingGroupArchive', false))(['workingGroupId' => $workingGroup->id]) }}
+                            </div>
 
                             @if ($workingGroupOpen)
                                 <div class="border-t border-gray-100 bg-gray-50/70 py-1 pl-6 dark:border-white/10 dark:bg-white/[.03] sm:pl-10">

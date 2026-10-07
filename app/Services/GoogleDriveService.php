@@ -344,6 +344,15 @@ class GoogleDriveService
         }, $fileName, ['Content-Type' => $mimeType]);
     }
 
+    public function downloadToPath(string $fileId, string $path): void
+    {
+        $this->http()
+            ->withToken($this->accessToken())
+            ->withOptions(['sink' => $path])
+            ->get(self::API_URL.'/files/'.$fileId, ['alt' => 'media'])
+            ->throw();
+    }
+
     public function preview(string $fileId, string $fileName, string $mimeType, ?string $range = null): StreamedResponse
     {
         $token = $this->accessToken();

@@ -9,6 +9,7 @@ use App\Models\AssessmentElement;
 use App\Models\Standard;
 use App\Models\WorkingGroup;
 use BackedEnum;
+use Filament\Actions\Action;
 use Filament\Actions\ExportAction;
 use Filament\Actions\Exports\Enums\ExportFormat;
 use Filament\Notifications\Notification;
@@ -54,6 +55,18 @@ class DocumentVerification extends Page
                 ->formats([ExportFormat::Xlsx])
                 ->columnMapping(false),
         ];
+    }
+
+    public function downloadWorkingGroupArchiveAction(): Action
+    {
+        return Action::make('downloadWorkingGroupArchive')
+            ->label('Unduh folder')
+            ->hiddenLabel()
+            ->tooltip('Unduh folder POKJA')
+            ->color('success')
+            ->extraAttributes(['class' => '!bg-emerald-700 hover:!bg-emerald-800 !text-white [&>.fi-icon]:!text-white'])
+            ->icon(Heroicon::OutlinedArrowDownTray)
+            ->url(fn (array $arguments): string => route('working-groups.archive.download', $arguments['workingGroupId']));
     }
 
     public function toggleWorkingGroup(int $workingGroupId): void
