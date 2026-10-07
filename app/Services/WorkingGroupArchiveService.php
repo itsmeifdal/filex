@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\WorkingGroup;
+use Illuminate\Support\Facades\Storage;
 use RuntimeException;
 use Throwable;
 use ZipArchive;
@@ -13,6 +14,10 @@ class WorkingGroupArchiveService
 
     public function create(WorkingGroup $workingGroup): string
     {
+        if ($cachedArchivePath = $this->cachedArchivePath($workingGroup)) {
+            return $cachedArchivePath;
+        }
+
         $workingGroup->load([
             'standards' => fn ($query) => $query
                 ->where('is_active', true)
@@ -31,6 +36,7 @@ class WorkingGroupArchiveService
 
         $zip = new ZipArchive;
         $temporaryDocumentPaths = [];
+        $documentsForArchive = [];
 
         try {
             if ($zip->open($archivePath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
@@ -57,18 +63,28 @@ class WorkingGroupArchiveService
                         }
 
                         $temporaryDocumentPaths[] = $temporaryDocumentPath;
-                        $this->drive->downloadToPath($document->drive_file_id, $temporaryDocumentPath);
-
-                        $archivePathForDocument = $this->uniqueArchivePath(
-                            $elementPath,
-                            $document->original_name,
-                            $archiveEntries,
-                        );
-
-                        if (! $zip->addFile($temporaryDocumentPath, $archivePathForDocument)) {
-                            throw new RuntimeException("Dokumen '{$document->original_name}' tidak dapat dimasukkan ke arsip.");
-                        }
+                        $documentsForArchive[] = [
+                            'file_id' => $document->drive_file_id,
+                            'path' => $temporaryDocumentPath,
+                            'archive_path' => $this->uniqueArchivePath(
+                                $elementPath,
+                                $document->original_name,
+                                $archiveEntries,
+                            ),
+                        ];
                     }
+                }
+            }
+
+            $this->drive->downloadToPaths($documentsForArchive);
+
+            foreach ($documentsForArchive as $document) {
+                if (! $zip->addFile($document['path'], $document['archive_path'])) {
+                    throw new RuntimeException("Dokumen '{$document['archive_path']}' tidak dapat dimasukkan ke arsip.");
+                }
+
+                if ($this->shouldStoreWithoutCompression($document['archive_path'])) {
+                    $zip->setCompressionName($document['archive_path'], ZipArchive::CM_STORE);
                 }
             }
 
@@ -76,7 +92,7 @@ class WorkingGroupArchiveService
                 throw new RuntimeException('Arsip ZIP tidak dapat diselesaikan.');
             }
 
-            return $archivePath;
+            return $this->storeCachedArchive($workingGroup, $archivePath);
         } catch (Throwable $exception) {
             $zip->close();
             @unlink($archivePath);
@@ -87,6 +103,50 @@ class WorkingGroupArchiveService
                 @unlink($temporaryDocumentPath);
             }
         }
+    }
+
+    public function forgetCachedArchive(int $workingGroupId): void
+    {
+        Storage::disk('local')->delete($this->cachePath($workingGroupId));
+    }
+
+    private function cachedArchivePath(WorkingGroup $workingGroup): ?string
+    {
+        $disk = Storage::disk('local');
+        $cachePath = $this->cachePath($workingGroup->id);
+
+        if (! $disk->exists($cachePath)) {
+            return null;
+        }
+
+        return $disk->path($cachePath);
+    }
+
+    private function storeCachedArchive(WorkingGroup $workingGroup, string $archivePath): string
+    {
+        $stream = fopen($archivePath, 'r');
+
+        if ($stream === false) {
+            throw new RuntimeException('Arsip ZIP sementara tidak dapat disimpan.');
+        }
+
+        try {
+            $cachePath = $this->cachePath($workingGroup->id);
+
+            if (!Storage::disk('local')->put($cachePath, $stream)) {
+                throw new RuntimeException('Arsip ZIP tidak dapat disimpan untuk unduhan berikutnya.');
+            }
+
+            return Storage::disk('local')->path($cachePath);
+        } finally {
+            fclose($stream);
+            @unlink($archivePath);
+        }
+    }
+
+    private function cachePath(int $workingGroupId): string
+    {
+        return "archives/working-groups/{$workingGroupId}.zip";
     }
 
     /** @param array<string, true> $entries */
@@ -134,5 +194,12 @@ class WorkingGroupArchiveService
         $name = trim($name, ". \t");
 
         return $name === '' ? 'Dokumen' : $name;
+    }
+
+    private function shouldStoreWithoutCompression(string $path): bool
+    {
+        return in_array(mb_strtolower(pathinfo($path, PATHINFO_EXTENSION)), [
+            'docx', 'jpg', 'jpeg', 'pdf', 'png', 'pptx', 'xlsx', 'zip',
+        ], true);
     }
 }

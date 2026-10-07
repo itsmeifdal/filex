@@ -4,6 +4,9 @@ namespace App\Filament\Resources\AccreditationDocuments;
 
 use App\Filament\Resources\AccreditationDocuments\Pages\ManageAccreditationDocuments;
 use App\Models\AccreditationDocument;
+use App\Models\AssessmentElement;
+use App\Models\Standard;
+use App\Models\WorkingGroup;
 use App\Services\GoogleDriveService;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -13,11 +16,15 @@ use Filament\Forms\Components\Select;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class AccreditationDocumentResource extends Resource
 {
@@ -32,6 +39,13 @@ class AccreditationDocumentResource extends Resource
     protected static ?string $pluralModelLabel = 'Dokumen';
 
     protected static ?int $navigationSort = 1;
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        $user = auth()->user();
+
+        return $user?->is_active && in_array($user->role, ['admin', 'surveyor'], true);
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -68,7 +82,7 @@ class AccreditationDocumentResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return $table->defaultSort('created_at', 'desc')->columns([
+        $table = $table->defaultSort('created_at', 'desc')->columns([
             TextColumn::make('created_at')->label('Dikirim')->dateTime('d M Y H:i')->sortable(),
             TextColumn::make('assessmentElement.standard.workingGroup.code')->label('Pokja')->badge()->searchable(),
             TextColumn::make('assessmentElement.code')->label('EP')->searchable()->sortable(),
@@ -82,7 +96,104 @@ class AccreditationDocumentResource extends Resource
             }),
         ])->filters([
             SelectFilter::make('status')->label('Status')->options(['pending' => 'Menunggu verifikasi', 'verified' => 'Terverifikasi', 'rejected' => 'Perlu perbaikan']),
-        ])->recordActions([
+            Filter::make('accreditation_structure')
+                ->label('Struktur Akreditasi')
+                ->form([
+                    Select::make('working_group_id')
+                        ->label('Pokja')
+                        ->options(fn (): array => WorkingGroup::query()
+                            ->where('is_active', true)
+                            ->orderBy('sort_order')
+                            ->orderBy('code')
+                            ->get(['id', 'code', 'name'])
+                            ->mapWithKeys(fn (WorkingGroup $workingGroup): array => [
+                                $workingGroup->id => "{$workingGroup->code} — {$workingGroup->name}",
+                            ])
+                            ->all())
+                        ->searchable()
+                        ->live()
+                        ->afterStateUpdated(function (Set $set): void {
+                            $set('standard_id', null);
+                            $set('assessment_element_id', null);
+                        }),
+                    Select::make('standard_id')
+                        ->label('Standar')
+                        ->options(function (Get $get): array {
+                            $workingGroupId = $get('working_group_id');
+
+                            if (blank($workingGroupId)) {
+                                return [];
+                            }
+
+                            return Standard::query()
+                                ->where('is_active', true)
+                                ->where('working_group_id', $workingGroupId)
+                                ->orderBy('sort_order')
+                                ->orderBy('code')
+                                ->get(['id', 'code', 'title'])
+                                ->mapWithKeys(fn (Standard $standard): array => [
+                                    $standard->id => "{$standard->code} — {$standard->title}",
+                                ])
+                                ->all();
+                        })
+                        ->searchable()
+                        ->disabled(fn (Get $get): bool => blank($get('working_group_id')))
+                        ->live()
+                        ->afterStateUpdated(fn (Set $set) => $set('assessment_element_id', null)),
+                    Select::make('assessment_element_id')
+                        ->label('EP')
+                        ->options(function (Get $get): array {
+                            $standardId = $get('standard_id');
+
+                            if (blank($standardId)) {
+                                return [];
+                            }
+
+                            return AssessmentElement::query()
+                                ->where('is_active', true)
+                                ->where('standard_id', $standardId)
+                                ->orderBy('sort_order')
+                                ->orderBy('code')
+                                ->get(['id', 'code', 'description'])
+                                ->mapWithKeys(fn (AssessmentElement $assessmentElement): array => [
+                                    $assessmentElement->id => "{$assessmentElement->code} — {$assessmentElement->description}",
+                                ])
+                                ->all();
+                        })
+                        ->searchable()
+                        ->disabled(fn (Get $get): bool => blank($get('standard_id'))),
+                ])
+                ->query(function (Builder $query, array $data): void {
+                    $query
+                        ->when(
+                            $data['working_group_id'] ?? null,
+                            fn (Builder $query, int|string $workingGroupId): Builder => $query->whereHas(
+                                'assessmentElement.standard',
+                                fn (Builder $query): Builder => $query->where('working_group_id', $workingGroupId),
+                            ),
+                        )
+                        ->when(
+                            $data['standard_id'] ?? null,
+                            fn (Builder $query, int|string $standardId): Builder => $query->whereHas(
+                                'assessmentElement',
+                                fn (Builder $query): Builder => $query->where('standard_id', $standardId),
+                            ),
+                        )
+                        ->when(
+                            $data['assessment_element_id'] ?? null,
+                            fn (Builder $query, int|string $assessmentElementId): Builder => $query->where(
+                                'assessment_element_id',
+                                $assessmentElementId,
+                            ),
+                        );
+                }),
+        ]);
+
+        if (! auth()->user()?->isAdmin()) {
+            return $table;
+        }
+
+        return $table->recordActions([
             Action::make('preview')
                 ->label('Preview')
                 ->icon(Heroicon::OutlinedEye)

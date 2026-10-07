@@ -8,11 +8,13 @@ use App\Models\AssessmentElement;
 use App\Models\GoogleDriveSetting;
 use App\Models\Standard;
 use App\Models\WorkingGroup;
+use Illuminate\Http\Client\Pool;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
+use Throwable;
 use Symfony\Component\HttpFoundation\HeaderUtils;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -344,13 +346,32 @@ class GoogleDriveService
         }, $fileName, ['Content-Type' => $mimeType]);
     }
 
-    public function downloadToPath(string $fileId, string $path): void
+    /**
+     * @param  array<int, array{file_id: string, path: string}>  $downloads
+     */
+    public function downloadToPaths(array $downloads, int $concurrency = 5): void
     {
-        $this->http()
-            ->withToken($this->accessToken())
-            ->withOptions(['sink' => $path])
-            ->get(self::API_URL.'/files/'.$fileId, ['alt' => 'media'])
-            ->throw();
+        if ($downloads === []) {
+            return;
+        }
+
+        $token = $this->accessToken();
+        $responses = $this->http()->pool(function (Pool $pool) use ($downloads, $token): void {
+            foreach ($downloads as $key => $download) {
+                $this->configureHttpRequest($pool->as((string) $key))
+                    ->withToken($token)
+                    ->sink($download['path'])
+                    ->get(self::API_URL.'/files/'.$download['file_id'], ['alt' => 'media']);
+            }
+        }, min(max($concurrency, 1), 5));
+
+        foreach ($responses as $response) {
+            if ($response instanceof Throwable) {
+                throw $response;
+            }
+
+            $response->throw();
+        }
     }
 
     public function preview(string $fileId, string $fileName, string $mimeType, ?string $range = null): StreamedResponse
@@ -571,7 +592,12 @@ class GoogleDriveService
 
     private function http(): PendingRequest
     {
-        $request = Http::connectTimeout(10)->timeout(60);
+        return $this->configureHttpRequest(Http::connectTimeout(10));
+    }
+
+    private function configureHttpRequest(PendingRequest $request): PendingRequest
+    {
+        $request->connectTimeout(10)->timeout(60);
         $proxy = config('services.google_drive.proxy');
 
         if (is_string($proxy) && filled($proxy)) {
