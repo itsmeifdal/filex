@@ -1,13 +1,26 @@
 <x-filament-panels::page>
     <div class="verification-public space-y-6">
-        <x-filament::section>
-            <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                <x-filament::section compact><p class="text-sm text-gray-500 dark:text-gray-400">Total file</p><p class="mt-1 text-3xl font-bold">{{ $totals['total'] }}</p></x-filament::section>
-                <x-filament::section compact><p class="text-sm text-gray-500 dark:text-gray-400">Menunggu verifikasi</p><p class="mt-1 text-3xl font-bold text-warning-600 dark:text-warning-400">{{ $totals['pending'] }}</p></x-filament::section>
-                <x-filament::section compact><p class="text-sm text-gray-500 dark:text-gray-400">Terverifikasi</p><p class="mt-1 text-3xl font-bold text-success-600 dark:text-success-400">{{ $totals['verified'] }}</p></x-filament::section>
-                <x-filament::section compact><p class="text-sm text-gray-500 dark:text-gray-400">Perlu perbaikan</p><p class="mt-1 text-3xl font-bold text-danger-600 dark:text-danger-400">{{ $totals['rejected'] }}</p></x-filament::section>
-            </div>
-        </x-filament::section>
+        <section aria-label="Ringkasan status verifikasi" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <article class="verification-stat-card verification-stat-card--total rounded-2xl px-5 py-4">
+                <p class="verification-stat-card__label text-sm font-semibold">Total file</p>
+                <p class="verification-stat-card__value mt-2 text-3xl font-extrabold tabular-nums">{{ $totals['total'] }}</p>
+            </article>
+
+            <article class="verification-stat-card verification-stat-card--pending rounded-2xl px-5 py-4">
+                <p class="verification-stat-card__label text-sm font-semibold">Menunggu verifikasi</p>
+                <p class="verification-stat-card__value mt-2 text-3xl font-extrabold tabular-nums">{{ $totals['pending'] }}</p>
+            </article>
+
+            <article class="verification-stat-card verification-stat-card--verified rounded-2xl px-5 py-4">
+                <p class="verification-stat-card__label text-sm font-semibold">Terverifikasi</p>
+                <p class="verification-stat-card__value mt-2 text-3xl font-extrabold tabular-nums">{{ $totals['verified'] }}</p>
+            </article>
+
+            <article class="verification-stat-card verification-stat-card--rejected rounded-2xl px-5 py-4">
+                <p class="verification-stat-card__label text-sm font-semibold">Perlu perbaikan</p>
+                <p class="verification-stat-card__value mt-2 text-3xl font-extrabold tabular-nums">{{ $totals['rejected'] }}</p>
+            </article>
+        </section>
 
         @foreach ($groups as $group)
             <x-filament::section class="verification-group">
